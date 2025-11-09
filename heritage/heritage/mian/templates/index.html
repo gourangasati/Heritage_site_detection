@@ -1,0 +1,390 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Heritage Site Detector{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 4rem 0;
+        border-radius: 20px;
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+
+    .hero-section h1 {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .hero-section p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .upload-section {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .upload-area {
+        border: 3px dashed var(--accent-color);
+        border-radius: 15px;
+        padding: 3rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: var(--light-bg);
+    }
+
+    .upload-area:hover {
+        border-color: var(--primary-color);
+        background: white;
+        transform: scale(1.02);
+    }
+
+    .upload-area.dragover {
+        border-color: var(--primary-color);
+        background: var(--light-bg);
+    }
+
+    .upload-icon {
+        font-size: 4rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+    }
+
+    .preview-container {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .preview-image {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        animation: fadeIn 0.5s;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .prediction-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 1rem 0;
+    }
+
+    .confidence-bar {
+        height: 30px;
+        background: var(--light-bg);
+        border-radius: 15px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+
+    .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--success) 0%, #66BB6A 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        transition: width 1s;
+    }
+
+    .features-section {
+        margin-top: 4rem;
+    }
+
+    .feature-card {
+        text-align: center;
+        padding: 2rem;
+        background: white;
+        border-radius: 15px;
+        height: 100%;
+        transition: transform 0.3s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Upload Section -->
+<div class="upload-section">
+    <h2 class="text-center mb-4"><i class="fas fa-upload"></i> Upload Heritage Site Image</h2>
+    <div id="upload" class="upload-area">
+        <div class="upload-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
+        </div>
+        <h4>Drag & Drop Your Image Here</h4>
+        <p class="text-muted">or click to browse</p>
+        <input id="fileInput" type="file" accept="image/*" style="display:none">
+    </div>
+
+    <div class="preview-container" id="previewContainer" style="display: none;">
+        <img id="preview" class="preview-image" alt="Preview">
+        <div class="mt-3">
+            <button id="uploadBtn" class="btn btn-primary btn-lg">
+                <i class="fas fa-search"></i> Detect Heritage Site
+            </button>
+            <button id="clearBtn" class="btn btn-secondary btn-lg ms-2">
+                <i class="fas fa-times"></i> Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- Result Card -->
+    <div id="resultCard" class="result-card" style="display: none;">
+        <h3 class="text-center mb-4"><i class="fas fa-check-circle text-success"></i> Detection Result</h3>
+        <div class="text-center">
+            <div class="prediction-badge" id="predLabel"></div>
+            <div class="confidence-bar mt-3">
+                <div class="confidence-fill" id="confidenceFill" style="width: 0%;">
+                    <span id="confidenceText">0%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Site Information -->
+        <div id="siteInfo" class="mt-4" style="display: none;">
+            <hr>
+            <h4 class="mb-3"><i class="fas fa-info-circle"></i> About This Heritage Site</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong><i class="fas fa-map-marker-alt"></i> Location:</strong> <span id="siteLocation"></span></p>
+                    <p><strong><i class="fas fa-calendar"></i> Built Year:</strong> <span id="siteBuiltYear"></span></p>
+                    <p><strong><i class="fas fa-user-tie"></i> Architect:</strong> <span id="siteArchitect"></span></p>
+                    <p><strong><i class="fas fa-star"></i> Significance:</strong> <span id="siteSignificance"></span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong><i class="fas fa-clock"></i> Visiting Hours:</strong> <span id="siteVisitingHours"></span></p>
+                    <p><strong><i class="fas fa-sun"></i> Best Time to Visit:</strong> <span id="siteBestTime"></span></p>
+                    <p><strong><i class="fas fa-ticket-alt"></i> Entry Fee:</strong> <span id="siteEntryFee"></span></p>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h5><i class="fas fa-book"></i> History:</h5>
+                <p id="siteHistory" class="text-muted"></p>
+            </div>
+            <div class="mt-3">
+                <h5><i class="fas fa-lightbulb"></i> Interesting Facts:</h5>
+                <ul id="siteFacts" class="list-unstyled"></ul>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h5><i class="fas fa-chart-bar"></i> All Predictions:</h5>
+            <div id="allProbs" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const upload = document.getElementById('upload');
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    const previewContainer = document.getElementById('previewContainer');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const resultCard = document.getElementById('resultCard');
+    let selectedFile = null;
+
+    upload.addEventListener('click', () => fileInput.click());
+    
+    upload.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        upload.classList.add('dragover');
+    });
+    
+    upload.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        upload.classList.remove('dragover');
+    });
+    
+    upload.addEventListener('drop', (e) => {
+        e.preventDefault();
+        upload.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        handleFile(file);
+    });
+
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    function handleFile(file) {
+        if(!file || !file.type.startsWith('image/')) {
+            showNotification('Please select a valid image file', 'error');
+            return;
+        }
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            preview.src = ev.target.result;
+            previewContainer.style.display = 'block';
+            resultCard.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    clearBtn.addEventListener('click', () => {
+        selectedFile = null;
+        fileInput.value = '';
+        previewContainer.style.display = 'none';
+        resultCard.style.display = 'none';
+    });
+
+    uploadBtn.addEventListener('click', () => {
+        if(!selectedFile) {
+            showNotification('Please select an image first', 'warning');
+            return;
+        }
+        
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        const form = new FormData();
+        form.append('image', selectedFile);
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+        
+        fetch('/predict/', { 
+            method: 'POST', 
+            body: form,
+            headers: {
+                'X-CSRFToken': csrftoken || ''
+            }
+        })
+        .then(r => {
+            if (!r.ok) {
+                return r.json().then(err => Promise.reject(err));
+            }
+            return r.json();
+        })
+        .then(data => {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-search"></i> Detect Heritage Site';
+            
+            if(data.error) { 
+                showNotification('Error: ' + data.error, 'error');
+                return; 
+            }
+            
+            // Display results
+            document.getElementById('predLabel').innerHTML = 
+                `<i class="fas fa-monument"></i> ${data.label}`;
+            
+            const confidence = (data.confidence * 100).toFixed(2);
+            document.getElementById('confidenceFill').style.width = confidence + '%';
+            document.getElementById('confidenceText').textContent = confidence + '%';
+            
+            // Display site information if available
+            if (data.site_info) {
+                const info = data.site_info;
+                document.getElementById('siteLocation').textContent = info.location || 'N/A';
+                document.getElementById('siteBuiltYear').textContent = info.built_year || 'N/A';
+                document.getElementById('siteArchitect').textContent = info.architect || 'N/A';
+                document.getElementById('siteSignificance').textContent = info.significance || 'N/A';
+                document.getElementById('siteVisitingHours').textContent = info.visiting_hours || 'N/A';
+                document.getElementById('siteBestTime').textContent = info.best_time || 'N/A';
+                document.getElementById('siteEntryFee').textContent = info.entry_fee || 'N/A';
+                document.getElementById('siteHistory').textContent = info.history || 'N/A';
+                
+                // Display facts
+                if (info.facts && info.facts.length > 0) {
+                    let factsHtml = '';
+                    info.facts.forEach(fact => {
+                        factsHtml += `<li><i class="fas fa-check-circle text-success"></i> ${fact}</li>`;
+                    });
+                    document.getElementById('siteFacts').innerHTML = factsHtml;
+                }
+                
+                document.getElementById('siteInfo').style.display = 'block';
+            }
+            
+            // Display all predictions
+            let allProbsHtml = '<div class="row">';
+            const sorted = Object.entries(data.all).sort((a, b) => b[1] - a[1]);
+            sorted.forEach(([label, prob]) => {
+                const percentage = (prob * 100).toFixed(2);
+                allProbsHtml += `
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6>${label}</h6>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar" role="progressbar" style="width: ${percentage}%">
+                                        ${percentage}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            allProbsHtml += '</div>';
+            document.getElementById('allProbs').innerHTML = allProbsHtml;
+            
+            resultCard.style.display = 'block';
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            showNotification(`Successfully identified as ${data.label}!`, 'success');
+        })
+        .catch(err => { 
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-search"></i> Detect Heritage Site';
+            const errorMsg = err.error || err.message || 'Prediction failed. Please try again.';
+            showNotification('Error: ' + errorMsg, 'error');
+            console.error('Prediction error:', err); 
+        });
+    });
+</script>
+{% endblock %}

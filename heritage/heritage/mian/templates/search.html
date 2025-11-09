@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Heritage Sites - Heritage Detector{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-hero {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 3rem 0;
+        border-radius: 20px;
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+
+    .site-card {
+        margin-bottom: 2rem;
+        transition: transform 0.3s;
+    }
+
+    .site-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .site-image {
+        height: 250px;
+        object-fit: cover;
+        background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-dark);
+    }
+
+    .info-section {
+        margin-top: 1rem;
+    }
+
+    .info-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--light-bg);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="search-container mb-4">
+    <form method="GET" action="{% url 'search' %}">
+        <div class="input-group">
+            <input type="text" class="form-control search-input" name="q" 
+                   placeholder="Search by name or location..." 
+                   value="{{ query }}">
+            <button class="btn btn-primary search-btn" type="submit">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if query %}
+    <h3 class="mb-4">Search Results for "{{ query }}"</h3>
+{% else %}
+    <h3 class="mb-4">Available Heritage Sites</h3>
+{% endif %}
+
+{% if heritage_sites %}
+    <div class="row">
+        {% for site in heritage_sites %}
+        <div class="col-md-6 mb-4">
+            <div class="card site-card">
+                <div class="site-image">
+                    <i class="fas fa-monument"></i>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">{{ site.name }}</h4>
+                    <p class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ site.location }}</p>
+                    <p class="card-text">{{ site.description }}</p>
+                    
+                    <div class="info-section">
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-calendar"></i> Built Year:</span>
+                            <span>{{ site.built_year }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-user-tie"></i> Architect:</span>
+                            <span>{{ site.architect }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-star"></i> Significance:</span>
+                            <span>{{ site.significance }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-clock"></i> Visiting Hours:</span>
+                            <span>{{ site.visiting_hours }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-sun"></i> Best Time:</span>
+                            <span>{{ site.best_time }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-ticket-alt"></i> Entry Fee:</span>
+                            <span>{{ site.entry_fee }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6><i class="fas fa-book"></i> History:</h6>
+                        <p class="text-muted">{{ site.history }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="no-results">
+        <i class="fas fa-search" style="font-size: 4rem; color: var(--accent-color);"></i>
+        <h3 class="mt-3">No Results Found</h3>
+        <p>Try searching with different keywords</p>
+    </div>
+{% endif %}
+{% endblock %}
