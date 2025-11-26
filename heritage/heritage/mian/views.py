@@ -14,105 +14,427 @@ from tensorflow.keras.preprocessing import image
 # Load model on server start (global)
 MODEL_PATH = os.path.join(settings.BASE_DIR, '..', 'model', 'heritage_model.h5')
 CLASS_PATH = os.path.join(settings.BASE_DIR, '..', 'model', 'class_indices.json')
-
 model = None
 class_indices = None
 idx_to_label = None
 
 def get_site_info(site_name):
     """Get detailed information about a heritage site"""
+
     sites_info = {
-        'Taj Mahal': {
-            'name': 'Taj Mahal',
-            'location': 'Agra, Uttar Pradesh',
-            'description': 'A white marble mausoleum built by Mughal emperor Shah Jahan',
-            'built_year': '1632-1653',
-            'architect': 'Ustad Ahmad Lahauri',
-            'significance': 'UNESCO World Heritage Site, one of the Seven Wonders of the World',
-            'visiting_hours': '6:00 AM - 7:00 PM',
-            'best_time': 'October to March',
-            'entry_fee': '₹50 for Indians, ₹1100 for foreigners',
-            'history': 'Built in memory of Mumtaz Mahal, the favorite wife of Shah Jahan. It took 22 years and 20,000 workers to complete.',
-            'facts': [
-                'Made entirely of white marble',
-                'Changes color throughout the day',
-                'Took 22 years to complete',
-                'Uses Islamic, Persian, and Indian architectural styles'
-            ]
-        },
-        'Qutub Minar': {
-            'name': 'Qutub Minar',
-            'location': 'Delhi',
-            'description': 'A 73-meter tall minaret, a UNESCO World Heritage Site',
-            'built_year': '1193',
-            'architect': 'Qutb-ud-din Aibak',
-            'significance': 'UNESCO World Heritage Site, tallest brick minaret in the world',
-            'visiting_hours': '7:00 AM - 5:00 PM',
-            'best_time': 'October to March',
-            'entry_fee': '₹30 for Indians, ₹500 for foreigners',
-            'history': 'Built by Qutb-ud-din Aibak, the founder of the Delhi Sultanate. The construction was completed by his successor Iltutmish.',
-            'facts': [
-                'Tallest brick minaret in the world',
-                'Has 379 steps to the top',
-                'Survived several earthquakes',
-                'Features intricate carvings and inscriptions'
-            ]
-        },
         'tajmahal': {
             'name': 'Taj Mahal',
             'location': 'Agra, Uttar Pradesh',
-            'description': 'A white marble mausoleum built by Mughal emperor Shah Jahan',
+            'description': 'A white marble mausoleum built by Mughal emperor Shah Jahan.',
             'built_year': '1632-1653',
             'architect': 'Ustad Ahmad Lahauri',
-            'significance': 'UNESCO World Heritage Site, one of the Seven Wonders of the World',
+            'significance': 'UNESCO World Heritage Site, one of the Seven Wonders of the World.',
             'visiting_hours': '6:00 AM - 7:00 PM',
             'best_time': 'October to March',
             'entry_fee': '₹50 for Indians, ₹1100 for foreigners',
-            'history': 'Built in memory of Mumtaz Mahal, the favorite wife of Shah Jahan. It took 22 years and 20,000 workers to complete.',
+            'history': 'Built in memory of Mumtaz Mahal. Took 22 years and 20,000 workers.',
             'facts': [
-                'Made entirely of white marble',
-                'Changes color throughout the day',
-                'Took 22 years to complete',
-                'Uses Islamic, Persian, and Indian architectural styles'
+                'Made entirely of white marble.',
+                'Changes color with daylight.',
+                'Symbol of eternal love.'
             ]
         },
+
         'qutub_minar': {
             'name': 'Qutub Minar',
             'location': 'Delhi',
-            'description': 'A 73-meter tall minaret, a UNESCO World Heritage Site',
+            'description': 'A 73-meter tall UNESCO World Heritage minaret.',
             'built_year': '1193',
             'architect': 'Qutb-ud-din Aibak',
-            'significance': 'UNESCO World Heritage Site, tallest brick minaret in the world',
+            'significance': 'Tallest brick minaret in the world.',
             'visiting_hours': '7:00 AM - 5:00 PM',
             'best_time': 'October to March',
             'entry_fee': '₹30 for Indians, ₹500 for foreigners',
-            'history': 'Built by Qutb-ud-din Aibak, the founder of the Delhi Sultanate. The construction was completed by his successor Iltutmish.',
+            'history': 'Started by Qutb-ud-din Aibak; completed by Iltutmish.',
             'facts': [
-                'Tallest brick minaret in the world',
-                'Has 379 steps to the top',
-                'Survived several earthquakes',
-                'Features intricate carvings and inscriptions'
+                'Has 379 steps.',
+                'Built with red sandstone.',
+                'Contains intricate carvings.'
             ]
         },
-        'gateway_of_india': {
+        'India Gate': {
+    'name': 'India Gate',
+    'location': 'New Delhi',
+    'description': 'A war memorial dedicated to Indian soldiers who died during World War I.',
+    'built_year': '1921–1931',
+    'architect': 'Sir Edwin Lutyens',
+    'significance': 'Honors 84,000 soldiers of the British Indian Army; major national monument.',
+    'visiting_hours': 'Open 24 hours',
+    'best_time': 'October to March',
+    'entry_fee': 'Free',
+    'history': 'Originally called the All India War Memorial; inaugurated in 1931 by Viceroy Lord Irwin.',
+    'facts': [
+        'Stands 42 meters tall.',
+        'The eternal flame Amar Jawan Jyoti was added in 1971.'
+    ]
+},
+
+
+        'Gateway of India': {
             'name': 'Gateway of India',
             'location': 'Mumbai, Maharashtra',
-            'description': 'A monument built to commemorate the visit of King George V',
+            'description': 'A basalt arch monument built to honor King George V.',
             'built_year': '1911-1924',
             'architect': 'George Wittet',
-            'significance': 'Iconic monument and major tourist attraction in Mumbai',
-            'visiting_hours': '24 hours (open all day)',
+            'significance': 'Major tourist attraction and historic landmark.',
+            'visiting_hours': 'Open 24 hours',
             'best_time': 'November to February',
             'entry_fee': 'Free',
-            'history': 'Built to commemorate the landing of King George V and Queen Mary in Mumbai in 1911. It was completed in 1924.',
+            'history': 'Constructed for the visit of King George V and Queen Mary.',
             'facts': [
-                'Built in Indo-Saracenic style',
-                'Made of yellow basalt and reinforced concrete',
-                'Last British troops left India through this gate',
-                'Major tourist attraction in Mumbai'
+                'Indo-Saracenic architectural style.',
+                'Overlooks the Arabian Sea.'
             ]
-        }
+        },
+
+        'Ajanta Caves': {
+            'name': 'Ajanta Caves',
+            'location': 'Aurangabad, Maharashtra',
+            'description': 'Rock-cut Buddhist cave monuments famous for murals.',
+            'built_year': '2nd century BCE - 480 CE',
+            'architect': 'Ancient Buddhist monks',
+            'significance': 'UNESCO World Heritage Site.',
+            'visiting_hours': '9:00 AM - 5:00 PM',
+            'best_time': 'November to March',
+            'entry_fee': '₹30 for Indians, ₹500 for foreigners',
+            'history': 'Caves rediscovered in 1819 by British soldiers.',
+            'facts': [
+                'Contains ancient paintings and sculptures.',
+                'Carved entirely in rock.'
+            ]
+        },
+
+        'Alai Darwaza': {
+            'name': 'Alai Darwaza',
+            'location': 'Delhi',
+            'description': 'A gateway built by Alauddin Khalji.',
+            'built_year': '1311',
+            'architect': 'Alauddin Khalji',
+            'significance': 'Earliest example of Indo-Islamic architecture.',
+            'visiting_hours': '7:00 AM - 5:00 PM',
+            'best_time': 'October to March',
+            'entry_fee': '₹30 for Indians, ₹500 for foreigners',
+            'history': 'Part of the Qutub Minar complex.',
+            'facts': [
+                'Made of red sandstone.',
+                'Has intricate latticed stone screens.'
+            ]
+        },
+
+        'Alai Minar': {
+            'name': 'Alai Minar',
+            'location': 'Delhi',
+            'description': 'Unfinished tower intended to be twice the height of Qutub Minar.',
+            'built_year': '1300s',
+            'architect': 'Alauddin Khalji',
+            'significance': 'Symbol of Khalji empire ambition.',
+            'visiting_hours': '7:00 AM - 5:00 PM',
+            'best_time': 'October to March',
+            'entry_fee': '₹30 for Indians, ₹500 for foreigners',
+            'history': 'Construction stopped after Alauddin Khalji died.',
+            'facts': [
+                'Only the 27m base was completed.',
+                'Located inside Qutub Complex.'
+            ]
+        },
+
+        'Basilica of Bom Jesus': {
+            'name': 'Basilica of Bom Jesus',
+            'location': 'Old Goa, Goa',
+            'description': 'Famous church holding the remains of St. Francis Xavier.',
+            'built_year': '1594-1605',
+            'architect': 'Domingos Fernandes',
+            'significance': 'UNESCO World Heritage Site.',
+            'visiting_hours': '9:00 AM - 6:30 PM',
+            'best_time': 'November to February',
+            'entry_fee': 'Free',
+            'history': 'Important pilgrimage site for Christians.',
+            'facts': [
+                'Baroque architecture.',
+                'Contains the relics of St. Francis Xavier.'
+            ]
+        },
+
+        'Charar-E-Sharif': {
+            'name': 'Charar-E-Sharif',
+            'location': 'Budgam, Jammu & Kashmir',
+            'description': 'Holy shrine of Sufi saint Sheikh Noor-ud-Din.',
+            'built_year': '15th century',
+            'architect': 'Kashmiri artisans',
+            'significance': 'Major Sufi pilgrimage site.',
+            'visiting_hours': '6:00 AM - 8:00 PM',
+            'best_time': 'April to October',
+            'entry_fee': 'Free',
+            'history': 'A revered religious site rebuilt after fires.',
+            'facts': [
+                'Center of Kashmiri Sufi culture.',
+                'Known for spiritual gatherings.'
+            ]
+        },
+
+        'Charminar': {
+            'name': 'Charminar',
+            'location': 'Hyderabad, Telangana',
+            'description': 'Iconic monument with four minarets.',
+            'built_year': '1591',
+            'architect': 'Mir Momin Astarabadi',
+            'significance': 'Symbol of Hyderabad.',
+            'visiting_hours': '9:00 AM - 5:30 PM',
+            'best_time': 'October to February',
+            'entry_fee': '₹25 for Indians, ₹300 for foreigners',
+            'history': 'Built by Mohammed Quli Qutb Shah.',
+            'facts': [
+                'Over 400 years old.',
+                'Surrounded by Laad Bazaar.'
+            ]
+        },
+
+        'Chhota Imambara': {
+            'name': 'Chhota Imambara',
+            'location': 'Lucknow, Uttar Pradesh',
+            'description': 'A beautiful Shia monument also known as Palace of Lights.',
+            'built_year': '1838',
+            'architect': 'Muhammad Ali Shah',
+            'significance': 'Important Islamic heritage site.',
+            'visiting_hours': '6:00 AM - 5:00 PM',
+            'best_time': 'November to February',
+            'entry_fee': '₹25 for Indians, ₹300 for foreigners',
+            'history': 'Built as a congregation hall for Shia ceremonies.',
+            'facts': [
+                'Chandeliers imported from Belgium.',
+                'Decorated with Arabic calligraphy.'
+            ]
+        },
+
+        'Ellora Caves': {
+            'name': 'Ellora Caves',
+            'location': 'Aurangabad, Maharashtra',
+            'description': 'Rock-cut caves representing Hindu, Buddhist, and Jain cultures.',
+            'built_year': '600-1000 CE',
+            'architect': 'Ancient craftsmen',
+            'significance': 'UNESCO World Heritage Site.',
+            'visiting_hours': '6:00 AM - 6:00 PM',
+            'best_time': 'November to March',
+            'entry_fee': '₹40 for Indians, ₹600 for foreigners',
+            'history': 'Includes the world-famous Kailasa Temple.',
+            'facts': [
+                'Carved completely out of a single rock.',
+                '34 major caves in total.'
+            ]
+        },
+
+        'Fatehpur Sikri': {
+            'name': 'Fatehpur Sikri',
+            'location': 'Agra, Uttar Pradesh',
+            'description': 'Historic Mughal city founded by Akbar.',
+            'built_year': '1571',
+            'architect': 'Akbar the Great',
+            'significance': 'UNESCO World Heritage city.',
+            'visiting_hours': '6:00 AM - 6:00 PM',
+            'best_time': 'October to March',
+            'entry_fee': '₹50 for Indians, ₹610 for foreigners',
+            'history': 'Served as the Mughal capital briefly.',
+            'facts': [
+                'Known for Buland Darwaza.',
+                'Abandoned due to water shortage.'
+            ]
+        },
+
+        'Golden Temple': {
+            'name': 'Golden Temple',
+            'location': 'Amritsar, Punjab',
+            'description': 'Holistic Sikh Gurudwara covered in gold.',
+            'built_year': '1581-1604',
+            'architect': 'Guru Arjan Dev Ji',
+            'significance': 'Holest shrine of Sikhism.',
+            'visiting_hours': '24 hours',
+            'best_time': 'November to March',
+            'entry_fee': 'Free',
+            'history': 'Renovated with gold during Maharaja Ranjit Singh’s rule.',
+            'facts': [
+                'Serves free food to thousands daily.',
+                'Located in the middle of a sacred lake.'
+            ]
+        },
+
+        'Hawa Mahal': {
+            'name': 'Hawa Mahal',
+            'location': 'Jaipur, Rajasthan',
+            'description': 'Pink sandstone palace known as Palace of Winds.',
+            'built_year': '1799',
+            'architect': 'Lal Chand Ustad',
+            'significance': 'Symbol of Jaipur.',
+            'visiting_hours': '9:00 AM - 5:00 PM',
+            'best_time': 'October to March',
+            'entry_fee': '₹50 for Indians, ₹200 for foreigners',
+            'history': 'Built so royal women could observe street life.',
+            'facts': [
+                'Has 953 windows.',
+                'Designed to allow cool breeze inside.'
+            ]
+        },
+
+        'Humayun\'s Tomb': {
+            'name': "Humayun's Tomb",
+            'location': 'Delhi',
+            'description': 'Mausoleum of Mughal Emperor Humayun.',
+            'built_year': '1570',
+            'architect': 'Mirak Mirza Ghiyas',
+            'significance': 'First garden-tomb in India.',
+            'visiting_hours': '6:00 AM - 6:00 PM',
+            'best_time': 'October to March',
+            'entry_fee': '₹35 for Indians, ₹550 for foreigners',
+            'history': 'Inspiration for Taj Mahal.',
+            'facts': [
+                'UNESCO Heritage Site.',
+                'Built with red sandstone.'
+            ]
+        },
+
+        'Iron Pillar': {
+            'name': 'Iron Pillar',
+            'location': 'Delhi',
+            'description': '7-meter tall ancient iron pillar resistant to rust.',
+            'built_year': '375-415 CE',
+            'architect': 'Gupta Empire',
+            'significance': 'Shows ancient metallurgical excellence.',
+            'visiting_hours': '7:00 AM - 5:00 PM',
+            'best_time': 'October to March',
+            'entry_fee': '₹30 for Indians, ₹500 for foreigners',
+            'history': 'Originally erected by King Chandragupta II.',
+            'facts': [
+                'Does not rust even after 1600 years.',
+                'Located in Qutub complex.'
+            ]
+        },
+
+        'Jamali Kamali Tomb': {
+            'name': 'Jamali Kamali Tomb',
+            'location': 'Mehrauli, Delhi',
+            'description': 'Tomb of Sufi saints Jamali and Kamali.',
+            'built_year': '1528-1536',
+            'architect': 'Lodi-era builders',
+            'significance': 'Important Sufi heritage site.',
+            'visiting_hours': '9:00 AM - 5:00 PM',
+            'best_time': 'October to March',
+            'entry_fee': 'Free',
+            'history': 'Located in Mehrauli Archaeological Park.',
+            'facts': [
+                'Known for Persian inscriptions.',
+                'Believed by locals to be haunted.'
+            ]
+        },
+
+        'Khajuraho': {
+            'name': 'Khajuraho Temples',
+            'location': 'Chhatarpur, Madhya Pradesh',
+            'description': 'Group of Hindu and Jain temples known for erotic sculptures.',
+            'built_year': '950-1050 CE',
+            'architect': 'Chandela dynasty',
+            'significance': 'UNESCO World Heritage Site.',
+            'visiting_hours': '6:00 AM - 6:00 PM',
+            'best_time': 'October to March',
+            'entry_fee': '₹40 for Indians, ₹600 for foreigners',
+            'history': 'Once had 85 temples, now only 25 survive.',
+            'facts': [
+                'Famous worldwide for stone carvings.',
+                'Shows medieval Indian art at its peak.'
+            ]
+        },
+
+        'Lotus Temple': {
+            'name': 'Lotus Temple',
+            'location': 'Delhi',
+            'description': 'Bahá’í House of Worship shaped like a lotus flower.',
+            'built_year': '1986',
+            'architect': 'Fariborz Sahba',
+            'significance': 'Symbol of peace and unity.',
+            'visiting_hours': '9:00 AM - 5:00 PM',
+            'best_time': 'October to March',
+            'entry_fee': 'Free',
+            'history': 'Visited by millions every year.',
+            'facts': [
+                'Made of 27 marble petals.',
+                'No idols or rituals inside.'
+            ]
+        },
+
+        'Mysore Palace': {
+            'name': 'Mysore Palace',
+            'location': 'Mysuru, Karnataka',
+            'description': 'Royal residence of the Wadiyar dynasty.',
+            'built_year': '1897-1912',
+            'architect': 'Henry Irwin',
+            'significance': 'Famous for Dussehra festival illumination.',
+            'visiting_hours': '10:00 AM - 5:30 PM',
+            'best_time': 'October to February',
+            'entry_fee': '₹100 for Indians, ₹300 for foreigners',
+            'history': 'Known for Indo-Saracenic architecture.',
+            'facts': [
+                'Lit with 97,000 bulbs during Dussehra.',
+                'One of India’s most visited palaces.'
+            ]
+        },
+
+        'Sun Temple Konark': {
+            'name': 'Sun Temple Konark',
+            'location': 'Konark, Odisha',
+            'description': 'Temple shaped like a chariot dedicated to the Sun God.',
+            'built_year': '1250 CE',
+            'architect': 'King Narasimhadeva I',
+            'significance': 'UNESCO World Heritage Site.',
+            'visiting_hours': '6:00 AM - 8:00 PM',
+            'best_time': 'November to February',
+            'entry_fee': '₹40 for Indians, ₹600 for foreigners',
+            'history': 'Known for its stunning stone wheels.',
+            'facts': [
+                'Designed as a giant stone chariot.',
+                'Iconic Kalinga architecture.'
+            ]
+        },
+
+        'Thanjavur Temple': {
+            'name': 'Thanjavur Temple',
+            'location': 'Thanjavur, Tamil Nadu',
+            'description': 'Brihadeeswarar Temple dedicated to Lord Shiva.',
+            'built_year': '1010 CE',
+            'architect': 'Rajaraja Chola I',
+            'significance': 'UNESCO World Heritage Site.',
+            'visiting_hours': '6:00 AM - 8:30 PM',
+            'best_time': 'November to February',
+            'entry_fee': 'Free',
+            'history': 'Masterpiece of Chola architecture.',
+            'facts': [
+                'Temple tower is 66m tall.',
+                'Made of granite blocks transported without wheels.'
+            ]
+        },
+
+        'Victoria Memorial': {
+            'name': 'Victoria Memorial',
+            'location': 'Kolkata, West Bengal',
+            'description': 'Huge marble museum dedicated to Queen Victoria.',
+            'built_year': '1906-1921',
+            'architect': 'William Emerson',
+            'significance': 'Iconic heritage site of Kolkata.',
+            'visiting_hours': '10:00 AM - 5:00 PM',
+            'best_time': 'November to February',
+            'entry_fee': '₹50 for Indians, ₹500 for foreigners',
+            'history': 'Houses rare manuscripts, paintings, and artifacts.',
+            'facts': [
+                'Surrounded by beautiful gardens.',
+                'Made entirely of white Makrana marble.'
+            ]
+        },
     }
+
+    return sites_info.get(site_name, None)
+
     
     # Normalize site name
     site_name_normalized = site_name.replace(' ', '_').lower()
@@ -230,44 +552,50 @@ def predict_view(request):
 
 def search(request):
     """Search for heritage sites"""
+    DATA_DIR = "dataset"
+    TRAIN_DIR = os.path.join(DATA_DIR, "Indian-monuments", "images", "train","Ajanta Caves",'().jpg')
+
     # List of available heritage sites with detailed information
     all_sites = [
         {
+        
             'name': 'Taj Mahal',
             'location': 'Agra, Uttar Pradesh',
-            'description': 'A white marble mausoleum built by Mughal emperor Shah Jahan',
-            'built_year': '1632-1653',
-            'architect': 'Ustad Ahmad Lahauri',
-            'significance': 'UNESCO World Heritage Site, one of the Seven Wonders of the World',
-            'visiting_hours': '6:00 AM - 7:00 PM',
-            'best_time': 'October to March',
-            'entry_fee': '₹50 for Indians, ₹1100 for foreigners',
-            'history': 'Built in memory of Mumtaz Mahal, the favorite wife of Shah Jahan. It took 22 years and 20,000 workers to complete.'
-        },
+            
+     },
         {
             'name': 'Qutub Minar',
             'location': 'Delhi',
-            'description': 'A 73-meter tall minaret, a UNESCO World Heritage Site',
-            'built_year': '1193',
-            'architect': 'Qutb-ud-din Aibak',
-            'significance': 'UNESCO World Heritage Site, tallest brick minaret in the world',
-            'visiting_hours': '7:00 AM - 5:00 PM',
-            'best_time': 'October to March',
-            'entry_fee': '₹30 for Indians, ₹500 for foreigners',
-            'history': 'Built by Qutb-ud-din Aibak, the founder of the Delhi Sultanate. The construction was completed by his successor Iltutmish.'
+           
         },
         {
             'name': 'Gateway of India',
             'location': 'Mumbai, Maharashtra',
-            'description': 'A monument built to commemorate the visit of King George V',
-            'built_year': '1911-1924',
-            'architect': 'George Wittet',
-            'significance': 'Iconic monument and major tourist attraction in Mumbai',
-            'visiting_hours': '24 hours (open all day)',
-            'best_time': 'November to February',
-            'entry_fee': 'Free',
-            'history': 'Built to commemorate the landing of King George V and Queen Mary in Mumbai in 1911. It was completed in 1924.'
+            
         },
+       
+    {"name": "Ajanta Caves", "location": "Aurangabad district, Maharashtra"},
+    {"name": "alai darwaza", "location": "Delhi"},
+    {"name": "alai minal", "location": "Delhi"},
+    {"name": "basilica of bom jesus", "location": "Old Goa, Goa"},
+    {"name": "Charar-E-Sharif", "location": "Charar-e-Sharif, Jammu & Kashmir"},
+    {"name": "Charminar", "location": "Hyderabad, Telangana"},
+
+
+         {"name": "Chhota Imambara", "location": "Lucknow, Uttar Pradesh"},
+{"name": "Ellora Caves", "location": "Aurangabad (Ellora), Maharashtra"},
+{"name": "Fatehpur Sikri", "location": "Near Agra, Uttar Pradesh"},
+{"name": "Golden Temple", "location": "Amritsar, Punjab"},
+{"name": "Hawa Mahal", "location": "Jaipur, Rajasthan"},
+{"name": "Humayuns Tomb", "location": "Delhi"},
+{"name": "Iron Pillar", "location": "Delhi"},
+{"name": "Jamali Kamali Tomb", "location": "Delhi"},
+{"name": "Khajuraho", "location": "Khajuraho, Madhya Pradesh"},
+{"name": "Lotus Temple", "location": "Delhi"},
+{"name": "Mysore Palace", "location": "Mysuru, Karnataka"},
+{"name": "Sun Temple Konark", "location": "Konark, Odisha"},
+{"name": "Thanjavur Temple", "location": "Thanjavur, Tamil Nadu"},
+{"name": "Victoria Memorial", "location": "Kolkata, West Bengal"},
     ]
     
     query = request.GET.get('q', '')
@@ -285,10 +613,30 @@ def guide(request):
     from .forms import GuideBookingForm
     
     heritage_sites = [
-        {'name': 'Taj Mahal', 'location': 'Agra, Uttar Pradesh'},
-        {'name': 'Qutub Minar', 'location': 'Delhi'},
-        {'name': 'Gateway of India', 'location': 'Mumbai, Maharashtra'},
-    ]
+    {'name': 'Taj Mahal', 'location': 'Agra, Uttar Pradesh'},
+    {'name': 'Qutub Minar', 'location': 'Delhi'},
+    {'name': 'Gateway of India', 'location': 'Mumbai, Maharashtra'},
+    {'name': 'Ajanta Caves', 'location': 'Aurangabad, Maharashtra'},
+    {'name': 'Alai Darwaza', 'location': 'Delhi'},
+    {'name': 'Alai Minar', 'location': 'Delhi'},
+    {'name': 'Basilica of Bom Jesus', 'location': 'Old Goa, Goa'},
+    {'name': 'Charar-E-Sharif', 'location': 'Budgam, Jammu & Kashmir'},
+    {'name': 'Charminar', 'location': 'Hyderabad, Telangana'},
+    {'name': 'Chhota Imambara', 'location': 'Lucknow, Uttar Pradesh'},
+    {'name': 'Ellora Caves', 'location': 'Aurangabad, Maharashtra'},
+    {'name': 'Fatehpur Sikri', 'location': 'Agra, Uttar Pradesh'},
+    {'name': 'Golden Temple', 'location': 'Amritsar, Punjab'},
+    {'name': 'Hawa Mahal', 'location': 'Jaipur, Rajasthan'},
+    {'name': 'Humayun\'s Tomb', 'location': 'Delhi'},
+    {'name': 'Iron Pillar', 'location': 'Delhi'},
+    {'name': 'Jamali Kamali Tomb', 'location': 'Mehrauli, Delhi'},
+    {'name': 'Khajuraho', 'location': 'Chhatarpur, Madhya Pradesh'},
+    {'name': 'Lotus Temple', 'location': 'Delhi'},
+    {'name': 'Mysore Palace', 'location': 'Mysuru, Karnataka'},
+    {'name': 'Sun Temple Konark', 'location': 'Konark, Odisha'},
+    {'name': 'Thanjavur Temple', 'location': 'Thanjavur, Tamil Nadu'},
+    {'name': 'Victoria Memorial', 'location': 'Kolkata, West Bengal'},
+]
     
     if request.method == 'POST':
         # Handle guide booking
