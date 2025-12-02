@@ -157,11 +157,11 @@ model.fit(train_flow, epochs=EPOCHS, validation_data=val_flow, callbacks=callbac
 # -----------------------------
 # 7. Save Model
 # -----------------------------
-os.makedirs("model", exist_ok=True)
-model.save("model/heritage_model.h5")
+os.makedirs("models", exist_ok=True)
+model.save("models/heritage_model.h5")
 
-with open("model/class_indices.json", "w") as f:
+with open("models/class_indices.json", "w") as f:
     json.dump(train_flow.class_indices, f, indent=2)
 
 print("\nTraining Completed Successfully!")
-print("Model saved at: model/heritage_model.h5")
+print("Model saved at: models/heritage_model.h5")
