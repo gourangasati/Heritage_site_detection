@@ -87,12 +87,23 @@
         {% for site in heritage_sites %}
         <div class="col-md-6 mb-4">
             <div class="card site-card">
-                <img src="{% static site.icon %}" alt="{{ site.name }}">
+                {% if site.image %}
+                <img src="{% static site.image %}" alt="{{ site.name }}" class="card-img-top site-image">
+                {% endif %}
                 <div class="card-body">
                     <h4 class="card-title">{{ site.name }}</h4>
                     <p class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ site.location }}</p>
-                    <p class="card-text">{{ site.description }}</p>
-                    <button class="btn btn-success">Explore</button>
+                    {% if site.description %}
+                        <p class="card-text">{{ site.description }}</p>
+                    {% endif %}
+                    {% if site.built_year %}
+                        <p class="text-muted"><strong>Built:</strong> {{ site.built_year }}</p>
+                    {% endif %}
+                    {% if site.key %}
+                        <a href="{% url 'site_detail' site.key %}" class="btn btn-success">
+                            Explore
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>

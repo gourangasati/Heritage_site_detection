@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Site Details - Heritage Detector{% endblock %}
+{% load static %}
+
+{% block content %}
+<div class="container my-4">
+    {% if site_info %}
+        <h2 class="mb-3">{{ site_info.name }}</h2>
+        <p class="text-muted">
+            <i class="fas fa-map-marker-alt"></i> {{ site_info.location }}
+        </p>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                {% if site_info.description %}
+                    <p class="mb-3">{{ site_info.description }}</p>
+                {% endif %}
+
+                <ul class="list-unstyled mb-3">
+                    {% if site_info.built_year %}
+                        <li><strong>Built:</strong> {{ site_info.built_year }}</li>
+                    {% endif %}
+                    {% if site_info.architect %}
+                        <li><strong>Architect:</strong> {{ site_info.architect }}</li>
+                    {% endif %}
+                    {% if site_info.significance %}
+                        <li><strong>Significance:</strong> {{ site_info.significance }}</li>
+                    {% endif %}
+                    {% if site_info.visiting_hours %}
+                        <li><strong>Visiting Hours:</strong> {{ site_info.visiting_hours }}</li>
+                    {% endif %}
+                    {% if site_info.best_time %}
+                        <li><strong>Best Time to Visit:</strong> {{ site_info.best_time }}</li>
+                    {% endif %}
+                    {% if site_info.entry_fee %}
+                        <li><strong>Entry Fee:</strong> {{ site_info.entry_fee }}</li>
+                    {% endif %}
+                </ul>
+
+                {% if site_info.history %}
+                    <h5>History</h5>
+                    <p>{{ site_info.history }}</p>
+                {% endif %}
+
+                {% if site_info.facts %}
+                    <h5>Interesting Facts</h5>
+                    <ul>
+                        {% for fact in site_info.facts %}
+                            <li>{{ fact }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if site_images %}
+            <h5>Gallery</h5>
+            <div class="row">
+                {% for img in site_images %}
+                    <div class="col-md-4 mb-3">
+                        <img src="{% static img %}" alt="{{ site_info.name }}" class="img-fluid rounded">
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-warning">
+            Complete information for this site is not available.
+        </div>
+    {% endif %}
+
+    <a href="{% url 'search' %}" class="btn btn-secondary">Back to Search</a>
+</div>
+{% endblock %}
+
+

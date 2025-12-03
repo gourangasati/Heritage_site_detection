@@ -12,8 +12,8 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 
 # Load model on server start (global)
-MODEL_PATH = os.path.join(settings.BASE_DIR, '..', 'model', 'heritage_model.h5')
-CLASS_PATH = os.path.join(settings.BASE_DIR, '..', 'model', 'class_indices.json')
+MODEL_PATH = os.path.join(settings.BASE_DIR, 'model', 'heritage_model.h5')
+CLASS_PATH = os.path.join(settings.BASE_DIR, 'model', 'class_indices.json')
 model = None
 class_indices = None
 idx_to_label = None
@@ -433,23 +433,24 @@ def get_site_info(site_name):
         },
     }
 
-    return sites_info.get(site_name, None)
-
-    
-    # Normalize site name
-    site_name_normalized = site_name.replace(' ', '_').lower()
-    if site_name_normalized in sites_info:
-        return sites_info[site_name_normalized]
-    
-    # Try direct match
+    # 1. Direct key match (exact)
     if site_name in sites_info:
         return sites_info[site_name]
-    
-    # Try case-insensitive match
+
+    # 2. Normalized match: remove spaces/underscores and lowercase
+    def normalize(name):
+        return name.replace(' ', '').replace('_', '').lower()
+
+    normalized_target = normalize(site_name)
+    for key, value in sites_info.items():
+        if normalize(key) == normalized_target:
+            return value
+
+    # 3. Case-insensitive exact string match
     for key, value in sites_info.items():
         if key.lower() == site_name.lower():
             return value
-    
+
     return None
 
 def load_resources():
@@ -553,52 +554,174 @@ def predict_view(request):
 def search(request):
     """Search for heritage sites"""
     DATA_DIR = "dataset"
-    TRAIN_DIR = os.path.join(DATA_DIR, "Indian-monuments", "images", "train","Ajanta Caves",'().jpg')
-
+    
     # List of available heritage sites with detailed information
     all_sites = [
         {
-        
             'name': 'Taj Mahal',
             'location': 'Agra, Uttar Pradesh',
-            
-     },
+            'built_year': '1632–1653',
+            'image': 'Indian-monuments/images/train/tajmahal/2.jpg',
+            'key': 'tajmahal',
+        },
         {
             'name': 'Qutub Minar',
             'location': 'Delhi',
-           
+            'built_year': '1193',
+            'image': 'Indian-monuments/images/train/qutub_minar/img346.jpg',
+            'key': 'qutub_minar',
         },
         {
             'name': 'Gateway of India',
             'location': 'Mumbai, Maharashtra',
-            
+            'built_year': '1911–1924',
+            'image': 'Indian-monuments/images/train/Gateway of India/1.jpg',
+            'key': 'Gateway of India',
         },
-       
-    {"name": "Ajanta Caves", "location": "Aurangabad district, Maharashtra"},
-    {"name": "alai darwaza", "location": "Delhi"},
-    {"name": "alai minal", "location": "Delhi"},
-    {"name": "basilica of bom jesus", "location": "Old Goa, Goa"},
-    {"name": "Charar-E-Sharif", "location": "Charar-e-Sharif, Jammu & Kashmir"},
-    {"name": "Charminar", "location": "Hyderabad, Telangana"},
-
-
-         {"name": "Chhota Imambara", "location": "Lucknow, Uttar Pradesh"},
-{"name": "Ellora Caves", "location": "Aurangabad (Ellora), Maharashtra"},
-{"name": "Fatehpur Sikri", "location": "Near Agra, Uttar Pradesh"},
-{"name": "Golden Temple", "location": "Amritsar, Punjab"},
-{"name": "Hawa Mahal", "location": "Jaipur, Rajasthan"},
-{"name": "Humayuns Tomb", "location": "Delhi"},
-{"name": "Iron Pillar", "location": "Delhi"},
-{"name": "Jamali Kamali Tomb", "location": "Delhi"},
-{"name": "Khajuraho", "location": "Khajuraho, Madhya Pradesh"},
-{"name": "Lotus Temple", "location": "Delhi"},
-{"name": "Mysore Palace", "location": "Mysuru, Karnataka"},
-{"name": "Sun Temple Konark", "location": "Konark, Odisha"},
-{"name": "Thanjavur Temple", "location": "Thanjavur, Tamil Nadu"},
-{"name": "Victoria Memorial", "location": "Kolkata, West Bengal"},
+        {
+            "name": "Ajanta Caves",
+            "location": "Aurangabad district, Maharashtra",
+            "built_year": "2nd century BCE – 480 CE",
+            "image": 'Indian-monuments/images/train/Ajanta Caves/(2).jpg',
+            "key": "Ajanta Caves",
+        },
+        {
+            "name": "Alai Darwaza",
+            "location": "Delhi",
+            "built_year": "1311",
+            "image": 'Indian-monuments/images/train/alai_darwaza/img3.jpg',
+            "key": "Alai Darwaza",
+        },
+        {
+            "name": "Alai Minar",
+            "location": "Delhi",
+            "built_year": "14th century",
+            "image": 'Indian-monuments/images/train/alai_minar/img3.jpg',
+            "key": "Alai Minar",
+        },
+        {
+            "name": "Basilica of Bom Jesus",
+            "location": "Old Goa, Goa",
+            "built_year": "1594–1605",
+            "image": 'Indian-monuments/images/train/basilica_of_bom_jesus/1.jpg',
+            "key": "Basilica of Bom Jesus",
+        },
+        {
+            "name": "Charar-E-Sharif",
+            "location": "Charar-e-Sharif, Jammu & Kashmir",
+            "built_year": "15th century",
+            "image": 'Indian-monuments/images/train/Charar-E- Sharif/51.jpg',
+            "key": "Charar-E-Sharif",
+        },
+        {
+            "name": "Charminar",
+            "location": "Hyderabad, Telangana",
+            "built_year": "1591",
+            "image": 'Indian-monuments/images/train/charminar/(37).jpg',
+            "key": "Charminar",
+        },
+        {
+            "name": "Chhota Imambara",
+            "location": "Lucknow, Uttar Pradesh",
+            "built_year": "1838",
+            "image": 'Indian-monuments/images/train/Chhota_Imambara/img1.jpg',
+            "key": "Chhota Imambara",
+        },
+        {
+            "name": "Ellora Caves",
+            "location": "Aurangabad (Ellora), Maharashtra",
+            "built_year": "600–1000 CE",
+            "image": 'Indian-monuments/images/train/Ellora Caves/(2).jpg',
+            "key": "Ellora Caves",
+        },
+        {
+            "name": "Fatehpur Sikri",
+            "location": "Near Agra, Uttar Pradesh",
+            "built_year": "1571",
+            "image": 'Indian-monuments/images/train/Fatehpur Sikri/1.jpg',
+            "key": "Fatehpur Sikri",
+        },
+        {
+            "name": "Golden Temple",
+            "location": "Amritsar, Punjab",
+            "built_year": "16th century",
+            "image": 'Indian-monuments/images/train/golden temple/1.jpg',
+            "key": "Golden Temple",
+        },
+        {
+            "name": "Hawa Mahal",
+            "location": "Jaipur, Rajasthan",
+            "built_year": "1799",
+            "image": 'Indian-monuments/images/train/hawa mahal pics/images-2.jpeg',
+            "key": "Hawa Mahal",
+        },
+        {
+            "name": "Humayun's Tomb",
+            "location": "Delhi",
+            "built_year": "1570",
+            "image": 'Indian-monuments/images/train/Humayun_s Tomb/1.jpg',
+            "key": "Humayun's Tomb",
+        },
+        {
+            "name": "Iron Pillar",
+            "location": "Delhi",
+            "built_year": "4th century CE",
+            "image": 'Indian-monuments/images/train/iron_pillar/img122.jpg',
+            "key": "Iron Pillar",
+        },
+        {
+            "name": "Jamali Kamali Tomb",
+            "location": "Delhi",
+            "built_year": "16th century",
+            "image": 'Indian-monuments/images/train/jamali_kamali_tomb/img2.jpg',
+            "key": "Jamali Kamali Tomb",
+        },
+        {
+            "name": "Khajuraho",
+            "location": "Khajuraho, Madhya Pradesh",
+            "built_year": "950–1050 CE",
+            "image": 'Indian-monuments/images/train/Khajuraho/img1.jpg',
+            "key": "Khajuraho",
+        },
+        {
+            "name": "Lotus Temple",
+            "location": "Delhi",
+            "built_year": "1986",
+            "image": 'Indian-monuments/images/train/lotus_temple/18.jpg',
+            "key": "Lotus Temple",
+        },
+        {
+            "name": "Mysore Palace",
+            "location": "Mysuru, Karnataka",
+            "built_year": "1897–1912",
+            "image": 'Indian-monuments/images/train/mysore_palace/1.jpg',
+            "key": "Mysore Palace",
+        },
+        {
+            "name": "Sun Temple Konark",
+            "location": "Konark, Odisha",
+            "built_year": "1250 CE",
+            "image": 'Indian-monuments/images/train/Sun Temple Konark/(2).jpg',
+            "key": "Sun Temple Konark",
+        },
+        {
+            "name": "Thanjavur Temple",
+            "location": "Thanjavur, Tamil Nadu",
+            "built_year": "1010 CE",
+            "image": 'Indian-monuments/images/train/tanjavur temple/1.jpg',
+            "key": "Thanjavur Temple",
+        },
+        {
+            "name": "Victoria Memorial",
+            "location": "Kolkata, West Bengal",
+            "built_year": "1906–1921",
+            "image": 'Indian-monuments/images/train/victoria memorial/1.jpg',
+            "key": "Victoria Memorial",
+        },
     ]
     
     query = request.GET.get('q', '')
+
     if query:
         query_lower = query.lower()
         heritage_sites = [site for site in all_sites if query_lower in site['name'].lower() or query_lower in site['location'].lower()]
@@ -606,6 +729,111 @@ def search(request):
         heritage_sites = all_sites
     
     return render(request, 'search.html', {'heritage_sites': heritage_sites, 'query': query})
+
+
+def site_detail(request, site_key):
+    """
+    Detailed information page for a single heritage site.
+    Uses the existing get_site_info helper.
+    """
+    # Try to fetch detailed info by the exact key first
+    site_info = get_site_info(site_key)
+
+    # If not found, try a case-insensitive match on keys
+    if not site_info:
+        for key in [
+            'tajmahal',
+            'qutub_minar',
+            'India Gate',
+            'Gateway of India',
+            'Ajanta Caves',
+            'Alai Darwaza',
+            'Alai Minar',
+            'Basilica of Bom Jesus',
+            'Charar-E-Sharif',
+            'Charminar',
+            'Chhota Imambara',
+            'Ellora Caves',
+            'Fatehpur Sikri',
+            'Golden Temple',
+            'Hawa Mahal',
+            "Humayun's Tomb",
+            'Iron Pillar',
+            'Jamali Kamali Tomb',
+            'Khajuraho',
+            'Lotus Temple',
+            'Mysore Palace',
+            'Sun Temple Konark',
+            'Thanjavur Temple',
+            'Victoria Memorial',
+        ]:
+            if key.lower() == site_key.lower():
+                site_info = get_site_info(key)
+                break
+
+    # Build a small gallery of images for this site from the dataset folder
+    site_images = []
+    if site_info:
+        # Map normalized site names to folder names inside dataset/Indian-monuments/images/train
+        def normalize(name):
+            return name.replace(' ', '').replace('_', '').lower()
+
+        folder_map = {
+            'tajmahal': 'tajmahal',
+            'qutubminar': 'qutub_minar',
+            'indiagate': 'India gate pics',
+            'gatewayofindia': 'Gateway of India',
+            'ajantacaves': 'Ajanta Caves',
+            'alaidarwaza': 'alai_darwaza',
+            'alaiminar': 'alai_minar',
+            'basilicaofbomjesus': 'basilica_of_bom_jesus',
+            'charar-e-sharif': 'Charar-E- Sharif',
+            'charminar': 'charminar',
+            'chhotaimambara': 'Chhota_Imambara',
+            'elloracaves': 'Ellora Caves',
+            'fatehpursikri': 'Fatehpur Sikri',
+            'goldentemple': 'golden temple',
+            'hawamahal': 'hawa mahal pics',
+            'humayunstomb': 'Humayun_s Tomb',
+            'ironpillar': 'iron_pillar',
+            'jamalikamaltomb': 'jamali_kamali_tomb',
+            'khajuraho': 'Khajuraho',
+            'lotustemple': 'lotus_temple',
+            'mysorepalace': 'mysore_palace',
+            'suntemplekonark': 'Sun Temple Konark',
+            'thanjavurtemple': 'tanjavur temple',
+            'victoriamemorial': 'victoria memorial',
+        }
+
+        normalized_key = normalize(site_key)
+        folder = folder_map.get(normalized_key)
+
+        if folder:
+            # Prefer train images, fall back to test if needed
+            base_dirs = [
+                os.path.join(settings.BASE_DIR, 'dataset', 'Indian-monuments', 'images', 'train', folder),
+                os.path.join(settings.BASE_DIR, 'dataset', 'Indian-monuments', 'images', 'test', folder),
+            ]
+            for base_dir in base_dirs:
+                if os.path.isdir(base_dir):
+                    files = sorted(os.listdir(base_dir))
+                    # Keep only image-like files
+                    files = [
+                        f for f in files
+                        if f.lower().endswith(('.jpg', '.jpeg', '.png', '.jfif', '.webp'))
+                    ]
+                    for name in files[:3]:
+                        rel_path = f'Indian-monuments/images/{os.path.basename(os.path.dirname(base_dir))}/{folder}/{name}'
+                        site_images.append(rel_path)
+                    if site_images:
+                        break
+
+    context = {
+        'site_key': site_key,
+        'site_info': site_info,
+        'site_images': site_images,
+    }
+    return render(request, 'site_detail.html', context)
 
 def guide(request):
     """Guide booking page"""

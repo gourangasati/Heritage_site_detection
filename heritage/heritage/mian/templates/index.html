@@ -208,8 +208,6 @@
         
     </div>
 </div>
-<div id="allProbs" class="mt-3" style="display: none;"></div>
-
 {% endblock %}
 
 {% block extra_js %}
@@ -222,6 +220,19 @@
     const clearBtn = document.getElementById('clearBtn');
     const resultCard = document.getElementById('resultCard');
     let selectedFile = null;
+
+    function resetSiteInfo() {
+        document.getElementById('siteLocation').textContent = '';
+        document.getElementById('siteBuiltYear').textContent = '';
+        document.getElementById('siteArchitect').textContent = '';
+        document.getElementById('siteSignificance').textContent = '';
+        document.getElementById('siteVisitingHours').textContent = '';
+        document.getElementById('siteBestTime').textContent = '';
+        document.getElementById('siteEntryFee').textContent = '';
+        document.getElementById('siteHistory').textContent = '';
+        document.getElementById('siteFacts').innerHTML = '';
+        document.getElementById('siteInfo').style.display = 'none';
+    }
 
     upload.addEventListener('click', () => fileInput.click());
     
@@ -249,6 +260,7 @@
             showNotification('Please select a valid image file', 'error');
             return;
         }
+        resetSiteInfo();
         selectedFile = file;
         const reader = new FileReader();
         reader.onload = (ev) => {
@@ -264,6 +276,7 @@
         fileInput.value = '';
         previewContainer.style.display = 'none';
         resultCard.style.display = 'none';
+        resetSiteInfo();
     });
 
     uploadBtn.addEventListener('click', () => {
@@ -325,6 +338,7 @@
             document.getElementById('confidenceText').textContent = confidence + '%';
             
             // Display site information if available
+            resetSiteInfo();
             if (data.site_info) {
                 const info = data.site_info;
                 document.getElementById('siteLocation').textContent = info.location || 'N/A';
@@ -348,28 +362,7 @@
                 document.getElementById('siteInfo').style.display = 'block';
             }
             
-            // Display all predictions
-            let allProbsHtml = '<div class="row">';
-            const sorted = Object.entries(data.all).sort((a, b) => b[1] - a[1]);
-            sorted.forEach(([label, prob]) => {
-                const percentage = (prob * 100).toFixed(2);
-                allProbsHtml += `
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h6>${label}</h6>
-                                <div class="progress" style="height: 25px;">
-                                    <div class="progress-bar" role="progressbar" style="width: ${percentage}%">
-                                        ${percentage}%
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            allProbsHtml += '</div>';
-            document.getElementById('allProbs').innerHTML = allProbsHtml;
+            // Removed per requirement: no prediction bar for all sites
             
             resultCard.style.display = 'block';
             resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

@@ -121,7 +121,10 @@ USE_TZ = True
 
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [ os.path.join(BASE_DIR, 'mian', 'static') ]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'mian', 'static'),
+    os.path.join(BASE_DIR, 'dataset'),  # allow serving cover images from dataset
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
